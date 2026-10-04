@@ -1,0 +1,16 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace.json",
+  "name": "windpaint",
+  "description": "Windpaint's agent skills and MCP server for image and video generation.",
+  "owner": {
+    "name": "Windpaint"
+  },
+  "plugins": [
+    {
+      "name": "windpaint",
+      "source": "./",
+      "description": "Windpaint skills (image, image-to-video, products, API integration) plus the Windpaint MCP server.",
+      "version": "0.1.0"
+    }
+  ]
+}

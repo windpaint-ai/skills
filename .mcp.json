@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "windpaint": {
+      "type": "http",
+      "url": "https://mcp.windpaint.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer ${WINDPAINT_API_KEY}"
+      },
+      "bearer_token_env_var": "WINDPAINT_API_KEY"
+    }
+  }
+}
