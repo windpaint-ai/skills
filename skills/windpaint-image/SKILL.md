@@ -17,10 +17,12 @@ description: "Generate images from a text prompt with Windpaint (capability imag
    - `resolution`: the model's default unless the user needs larger. Higher tiers cost more.
    - `model`: omit to get the default; set it only for a reason you can state.
    - `seed`: set it when the user wants to reproduce or vary a result predictably.
+   - `num_outputs`: for variations, up to the model's `max_outputs` images in one job, charged per
+     image delivered. `output_format` (`png`, `jpeg`, `webp`) when the user needs a specific format.
 3. For one image, skip the estimate unless the user asked about cost. For a batch, `estimate_cost`
    once, multiply by the count, and tell the user the total before submitting.
 4. `generate(capability="image.generate", prompt=..., aspect_ratio=..., resolution=..., wait=true)`.
-5. On `completed`, take `outputs[0].id` (also under `images`). `download_asset` it to get a signed
+5. On `completed`, take `outputs[0].id` (also under `images`; one entry per image with `num_outputs`). `download_asset` it to get a signed
    URL, then save it with `curl -fsSL -o <path> "<url>"` to the path the user wants, or into the
    project's working directory.
 6. Report the saved path, model, resolution and credits.

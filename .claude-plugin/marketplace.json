@@ -9,7 +9,7 @@
     {
       "name": "windpaint",
       "source": "./",
-      "description": "Windpaint skills (image, image-to-video, products, API integration) plus the Windpaint MCP server.",
+      "description": "Windpaint skills (image, image-to-video, workflows, API integration) plus the Windpaint MCP server.",
       "version": "0.1.0"
     }
   ]

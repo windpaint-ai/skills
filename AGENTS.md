@@ -8,13 +8,13 @@ media with Windpaint or build it into an app:
 1. Read `skills/windpaint/SKILL.md` first, then the skill for the task:
    - `skills/windpaint-image/SKILL.md`: text to image (and image edit when available).
    - `skills/windpaint-video/SKILL.md`: animate an image into a clip.
-   - `skills/windpaint-products/SKILL.md`: ready-made multi-step products.
+   - `skills/windpaint-workflows/SKILL.md`: ready-made multi-step workflows.
    - `skills/windpaint-api/SKILL.md`: application code against the REST API.
 2. Check `WINDPAINT_API_KEY` is set without printing it. If not, ask the user to create a key in the
    Windpaint dashboard and export it.
 3. If the Windpaint MCP server is not connected, suggest adding it (see `README.md`), or use the REST
    API as described in `skills/windpaint-api/SKILL.md`.
-4. Discover models and prices live (`list_capabilities`); estimate before video jobs and product runs.
+4. Discover models and prices live (`list_capabilities`); estimate before video jobs and workflow runs.
 
 ## Files
 
@@ -29,7 +29,7 @@ media with Windpaint or build it into an app:
 - Only document what the Windpaint API and MCP server do today. Planned features stay out until they
   ship.
 - Do not hard-code model names, prices or tier lists as facts; tell the agent to read them from
-  `list_capabilities` / `list_products`.
+  `list_capabilities` / `list_workflows`.
 - Keep skills short and agent-facing. No marketing copy.
 - Keep the version in the three plugin manifests and `marketplace.json` in step.
 - Validate with `claude plugin validate .`.

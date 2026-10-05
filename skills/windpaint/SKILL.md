@@ -6,15 +6,15 @@ description: "Foundation for using Windpaint, an image and video generation API.
 # Windpaint
 
 Windpaint runs generation **capabilities** (typed primitives such as `image.generate` or
-`video.generate`) on **models** that implement them, and **products** (multi-step workflows such as
+`video.generate`) on **models** that implement them, and **workflows** (multi-step pipelines such as
 `text-to-clip`) built from those capabilities. Everything is asynchronous and billed in credits.
 
 ## 1. Pick a surface
 
 1. **MCP tools** (preferred when present): `list_capabilities`, `estimate_cost`, `upload_asset`,
    `generate`, `get_job`, `wait_for_job`, `download_asset`, `cancel_job`, `list_recent_jobs`,
-   `list_assets`, `list_projects`, `create_project`, `get_balance`, `list_products`, `get_product`,
-   `estimate_product`, `run_product`, `get_run`, `list_runs`, `cancel_run`.
+   `list_assets`, `list_projects`, `create_project`, `get_balance`, `list_workflows`, `get_workflow`,
+   `estimate_workflow`, `run_workflow`, `get_run`, `list_runs`, `cancel_run`.
 2. **REST** with `curl` otherwise. Base URL `${WINDPAINT_API_URL:-https://api.windpaint.ai}/v1`,
    header `Authorization: Bearer $WINDPAINT_API_KEY`. Endpoints are listed in the `windpaint-api` skill.
 
@@ -34,12 +34,12 @@ The catalog changes. Do not rely on model names or prices from memory or from th
   for one or a listed model fits better (resolution, duration, speed).
 - Models with `licence_restricted: true` are evaluation only (see `licence_note`). Do not use them for
   work the user will ship or sell, and tell the user when one is the only option.
-- Before building a chain of capabilities, check `list_products`: a product may already do it.
+- Before building a chain of capabilities, check `list_workflows`: a workflow may already do it.
 
 ## 3. Estimate before spending
 
-- Always estimate video jobs and product runs: `estimate_cost` / `estimate_product`
-  (REST `POST /generation/estimate`, `POST /workflows/products/{slug}/estimate`). Estimates also
+- Always estimate video jobs and workflow runs: `estimate_cost` / `estimate_workflow`
+  (REST `POST /generation/estimate`, `POST /workflows/{slug}/estimate`). Estimates also
   validate the arguments and return the chosen model and output size.
 - Report the credits and `available_credits` to the user before an expensive run, and before any
   batch. A null `credits` means that tier has no price and cannot be submitted.
@@ -52,9 +52,13 @@ The catalog changes. Do not rely on model names or prices from memory or from th
 
 ## 4. Jobs are async
 
-- Submitting returns `request_id` and `credits_estimate` at once (HTTP 202).
+- Submitting returns `request_id` and `credits_estimate` at once (HTTP 202). Over REST, `Prefer: wait`
+  (or `wait=N`, up to 60 s) holds the response until the job or run finishes and answers 200 with the
+  final status; if it does not finish in time you get the usual 202 and poll.
 - Job statuses: `queued`, `in_progress`, then one of `completed`, `failed`, `nsfw`, `canceled`.
-  Product run statuses: `queued`, `running`, `completed`, `failed`, `canceled`.
+  Workflow run statuses: `queued`, `running`, `completed`, `failed`, `canceled`.
+- Image jobs take `num_outputs` (1 to the model's `max_outputs`, billed per delivered output) and
+  `output_format` (`png`, `jpeg`, `webp`, with `output_quality` for the last two).
 - Images take seconds. Video takes several minutes per clip. For video, submit with `wait=false`, then
   `wait_for_job` (max 600 s per call). If it returns still running, call `wait_for_job` again.
 - **Never resubmit because a wait timed out.** The job is still running and still billed. Resubmit only
@@ -68,8 +72,9 @@ The catalog changes. Do not rely on model names or prices from memory or from th
 - Inputs go in named slots: `inputs: {"<slot>": ["<asset_id>", ...]}`. Slot names and min/max counts
   come from `list_capabilities` (e.g. `start_frame` for `video.generate`, `images` for `image.edit`).
 - Get asset ids from `upload_asset` or from an earlier job's `outputs[].id`. That is how steps chain.
-- External URLs are not accepted as inputs. Upload them first (`upload_asset` with `url`).
-- Uploads: PNG, JPEG, WebP, MP4, MP3, WAV, up to 50 MiB. Uploads are free.
+- Public https URLs and `data:` URIs (up to 5 MB) also work as inputs; the API stores them as assets.
+- Formats: PNG, JPEG, WebP images (20 MB); MP4, MOV, WebM video (200 MB, 60 s); MP3, WAV, M4A, OGG
+  audio (25 MB, 5 min). Uploads are free.
 - The hosted MCP server cannot read your disk: `upload_asset` takes `url` or `data_base64` (base64 of
   a local file).
 - `download_asset` returns a signed URL valid about 15 minutes. To save the file, fetch it with
@@ -91,19 +96,17 @@ else the estimate), and where the output is (saved path or URL). Do not dump raw
 ## Live today
 
 At the time of writing, only `image.generate` and `video.generate` (image to video, start frame
-required) have available models, and `text-to-clip` is the only runnable product. Other capabilities
-and products may be listed with `available: false`. Trust `list_capabilities` / `list_products` over
+required) have available models, and `text-to-clip` is the only runnable workflow. Other capabilities
+and workflows may be listed with `available: false`. Trust `list_capabilities` / `list_workflows` over
 this note.
 
 ## Not available today
 
-No synchronous "wait in the request" mode on the REST API (the MCP `wait` flag polls for you). Webhooks
-are unsigned, sent once and not retried. Product runs have no webhook. The hosted MCP takes an API key,
-not OAuth.
+The hosted MCP takes an API key, not OAuth.
 
 ## Related skills
 
 - `windpaint-image`: text to image.
 - `windpaint-video`: animate an image into a clip.
-- `windpaint-products`: run ready-made multi-step products.
+- `windpaint-workflows`: run ready-made multi-step workflows.
 - `windpaint-api`: write application code against the REST API.

@@ -1,6 +1,6 @@
 ---
 name: windpaint-api
-description: "Write application code that calls the Windpaint REST API: submit generation jobs, poll or receive webhooks, upload inputs, fetch outputs, estimate credits, run products and handle errors. Use when the user is building Windpaint into an app, backend, script or pipeline (any language), debugging such an integration, or asks how a Windpaint endpoint works. Not for one-off generation from the agent; use the MCP tools for that."
+description: "Write application code that calls the Windpaint REST API: submit generation jobs, poll or receive webhooks, upload inputs, fetch outputs, estimate credits, run workflows and handle errors. Use when the user is building Windpaint into an app, backend, script or pipeline (any language), debugging such an integration, or asks how a Windpaint endpoint works. Not for one-off generation from the agent; use the MCP tools for that."
 ---
 
 # Integrate the Windpaint API
@@ -33,15 +33,16 @@ POST /generation/uploads                   multipart, file field "data" -> asset
 GET  /generation/assets[?limit]            GET /generation/assets/{id}
 GET  /generation/assets/{id}/content       302 to a signed URL (about 15 min), or the bytes
 POST /generation/capabilities/{capability} {model?, prompt, inputs: {slot: [asset_id]}, resolution?, aspect_ratio?,
-                                            quality?, duration?, seed?, webhook_url?, project_id?} -> 202
+                                            quality?, duration?, seed?, num_outputs?, output_format?,
+                                            output_quality?, webhook_url?, webhook_events?, project_id?} -> 202
 POST /generation/models/{model}            model-addressed alias: {prompt, image_urls, ...} -> 202
 GET  /generation/requests[?limit&workflow_run_id]
 GET  /generation/requests/{id}/status
 POST /generation/requests/{id}/cancel
-GET  /workflows/products[?category]        GET /workflows/products/{slug}
-POST /workflows/products/{slug}/estimate   {inputs, project_id?}
-POST /workflows/products/{slug}/runs       {inputs, project_id?} -> 202
-GET  /workflows/runs[?limit&product]       GET /workflows/runs/{id}    POST /workflows/runs/{id}/cancel
+GET  /workflows[?category]                 GET /workflows/{slug}
+POST /workflows/{slug}/estimate            {inputs, project_id?}
+POST /workflows/{slug}/runs                {inputs, project_id?, webhook_url?, webhook_events?} -> 202
+GET  /workflows/runs[?limit&workflow]      GET /workflows/runs/{id}    POST /workflows/runs/{id}/cancel
 GET  /billing/balance                      available, held, by_source, next_expiry, lots
 GET  /projects                             POST /projects {name, slug?, description?}
 ```
@@ -64,26 +65,45 @@ minutes, images seconds. A completed status carries `outputs` (each `{id, url, c
 height, duration_s}`), the shortcuts `images` / `video`, and `credits: {estimate, actual}`. On
 `failed`, `error` says why.
 
+To skip polling for short jobs, send `Prefer: wait` (or `wait=N`, 1 to 60 s). If the job finishes in
+time the response is 200 with the full status (check `status`: it can be `failed`, `nsfw` or
+`canceled`); otherwise it is the usual 202 and you poll. `Preference-Applied: wait=N` says the API
+waited. It works on workflow runs too (200 with `{"data": run}`), though runs with video take longer
+than 60 s.
+
+Image jobs take `num_outputs` (1 to the model's `max_outputs` from `/generation/capabilities`; video
+models take only 1). The hold is the one-output price times `num_outputs`, and you are charged per
+delivered output. `output_format` is `png` (default), `jpeg` or `webp`, with `output_quality` 1-100
+for the last two; only models with non-empty `output_formats` accept it.
+
 Credit amounts are decimals (serialized as strings); parse them as decimals, not floats.
 
 ## Webhooks
 
-Pass `webhook_url` on submit. When the job finishes, Windpaint POSTs the same body as the status
-endpoint to that URL. Know its limits:
+Pass `webhook_url` (absolute `https://`) on a job submit or a workflow run, and optionally
+`webhook_events`: `completed` (default; any terminal status) and/or `started`. Windpaint POSTs
+`{type, timestamp, data}`, where `data` is the job status or the run object and `type` is e.g.
+`request.completed`, `request.failed`, `run.completed`.
 
-- It is **not signed**, is sent **once** with a 10 s timeout, and is **not retried**.
-- In production only `https://` URLs are called.
-- A canceled job may not send one. Product runs have no webhook.
+- Deliveries are signed per [Standard Webhooks](https://www.standardwebhooks.com): headers
+  `webhook-id`, `webhook-timestamp`, `webhook-signature`. Verify on the raw body with the
+  organization's `whsec_` secret (`GET /webhooks/jobs/secret`); the `standardwebhooks` libraries do it.
+  Reject timestamps more than 5 minutes off.
+- Non-2xx answers (408, 429, 5xx, timeouts over 10 s) are retried up to 10 times over about 6 hours with
+  the same `webhook-id`. De-duplicate on it. Other 4xx are not retried.
+- Deliveries can arrive out of order; act on `data.status`. Answer 2xx fast and do slow work later.
+- `GET /webhooks/jobs/deliveries[?request_id|run_id]` shows every attempt.
 
-So treat a webhook as a hint: take `request_id` from it, re-fetch `GET /generation/requests/{id}/status`
-with your key before acting, and keep a poller or periodic reconcile for jobs that never report back.
+Keep a slow fallback poll for jobs still open long after they should have finished.
 
 ## Inputs and outputs
 
-- Upload with multipart field `data`: PNG, JPEG, WebP, MP4, MP3 or WAV, up to 50 MiB, free. The
-  response's `data.id` is the asset id.
+- Upload with multipart field `data`, free: PNG, JPEG or WebP images (20 MB, 64-8192 px), MP4, MOV or
+  WebM video (200 MB, 60 s), MP3, WAV, M4A or OGG audio (25 MB, 5 min). The format is detected from
+  the bytes. The response's `data.id` is the asset id. Limit failures are 422 `input.*`.
 - Put asset ids in `inputs` by slot name from `/generation/capabilities`. Asset URLs this API returned
-  are accepted too. Third-party URLs are not: download and upload them first.
+  are accepted too, and so are public https URLs (fetched at submit; failures are 422
+  `input.fetch_failed`) and `data:` URIs up to 5 MB. Both are stored as new assets of the project.
 - Assets belong to one project; an id from another project is a 422.
 - Output `url`s point at `/v1/generation/assets/{id}/content`, which needs your key and redirects to a
   short-lived signed URL. Server-side, request it with the key, then follow the redirect **without**
@@ -117,18 +137,21 @@ its own workspaces to a project and send the header per request.
 | 422 `request.validation_failed` | bad argument; `details` names it | no, fix the request |
 | 402 `billing.insufficient_credits` | balance too low | no |
 | 503 `request.service_unavailable` | model not available or tier unpriced here | no, pick another model/tier |
-| 429, 500, 502, 504, network errors | transient | GETs yes, with backoff and jitter |
+| 429, 500, 502, 504, network errors | transient | GETs, and POSTs sent with an `Idempotency-Key`: yes, with backoff and jitter (honor `Retry-After` on 429) |
 
-Submits have **no idempotency key**. Blindly retrying a POST after a timeout can create and bill a second
-job. Before resubmitting, list `GET /generation/requests?limit=...` and look for the job you meant to
-create.
+Send an `Idempotency-Key` header (1-255 chars, e.g. a UUID per logical operation) on submits, uploads
+and workflow runs. A retry with the same key and body within 24 hours returns the original response
+with `Idempotent-Replayed: true` and creates and bills nothing new. Same key with a different body is
+409 `idempotency.key_reused`; while the first is still processing, 409 `idempotency.in_progress` with
+`Retry-After` (retry with the same key). Failed (4xx/5xx) responses are not stored. After a 5xx on a
+submit, check `GET /generation/requests` before retrying, since a committed job can release the key.
 
 ## Checklist for a new integration
 
 1. Key in server config, base URL configurable.
 2. Read capabilities at startup or on a schedule; do not hard-code model names or prices.
 3. Estimate before any user-triggered video job; show the cost.
-4. Submit, store `request_id` with your own record, then poll (and/or webhook + re-fetch).
+4. Submit with an `Idempotency-Key`, store `request_id` with your own record, then poll, or receive verified webhooks.
 5. Handle every terminal status, including `nsfw` and `canceled`.
 6. Store asset ids; fetch content through your backend.
 7. Map `error.code` to user-facing messages; log `error.request_id`.

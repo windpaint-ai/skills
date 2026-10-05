@@ -15,8 +15,8 @@ Video jobs take minutes and cost far more than images. Estimate first, submit on
 2. Get the start frame:
    - The user gave a file or URL: `upload_asset` with `url`, or `data_base64` for a local file.
    - They gave an asset id or an earlier job's output: use that id.
-   - They only gave a prompt: first check `list_products` for `text-to-clip` (see
-     `windpaint-products`); it does still + clip in one run. Otherwise make a still with
+   - They only gave a prompt: first check `list_workflows` for `text-to-clip` (see
+     `windpaint-workflows`); it does still + clip in one run. Otherwise make a still with
      `windpaint-image` at the aspect ratio the video will use, and use its output id.
 3. `estimate_cost(capability="video.generate", prompt=..., inputs={"start_frame": [id]},
    resolution=..., duration_s=..., aspect_ratio=...)`. Tell the user the credits and their available

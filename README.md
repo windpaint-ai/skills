@@ -8,7 +8,7 @@ plugin and a Cursor plugin. Installing the plugin also connects the Windpaint MC
 | `windpaint` | Foundation: auth, capabilities and models, estimates, async jobs, assets, projects, balance |
 | `windpaint-image` | Text to image (`image.generate`), image edit when a model is available |
 | `windpaint-video` | Image to video (`video.generate` with a start frame) |
-| `windpaint-products` | Ready-made multi-step products such as `text-to-clip` |
+| `windpaint-workflows` | Ready-made multi-step workflows such as `text-to-clip` |
 | `windpaint-api` | Writing app code against the REST API: submit, poll, webhooks, uploads, errors |
 
 ## Prerequisites
