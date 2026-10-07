@@ -1,6 +1,7 @@
 # Windpaint skills
 
-Agent skills for Windpaint, packaged as a Claude Code plugin (and single-plugin marketplace), a Codex
+Agent skills for [Windpaint](https://windpaint.ai), the developer API for open-weight image and video
+generation, asset storage and workflows. Packaged as a Claude Code plugin (and single-plugin marketplace), a Codex
 plugin and a Cursor plugin. Installing the plugin also connects the Windpaint MCP server.
 
 | Skill | Use it for |
@@ -22,7 +23,7 @@ export WINDPAINT_API_KEY=aak_...
 The MCP config sends it as `Authorization: Bearer $WINDPAINT_API_KEY` to the hosted Windpaint MCP
 server at `https://mcp.windpaint.ai/mcp`.
 
-Docs: https://docs.windpaint.ai/agents/overview
+Website: https://windpaint.ai · Docs: https://docs.windpaint.ai/agents/overview
 
 ## Claude Code
 

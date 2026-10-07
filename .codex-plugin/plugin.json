@@ -3,10 +3,18 @@
   "version": "0.1.0",
   "description": "Generate images and video with the Windpaint API, run its multi-step workflows, and build Windpaint into your app.",
   "author": {
-    "name": "Windpaint"
+    "name": "Windpaint",
+    "url": "https://windpaint.ai"
   },
+  "homepage": "https://windpaint.ai",
   "repository": "https://github.com/windpaint-ai/skills",
-  "keywords": ["windpaint", "image-generation", "video-generation", "image-to-video", "mcp"],
+  "keywords": [
+    "windpaint",
+    "image-generation",
+    "video-generation",
+    "image-to-video",
+    "mcp"
+  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Windpaint",
@@ -17,6 +25,7 @@
       "Generate a 16:9 image of a lighthouse at dusk with Windpaint",
       "Turn this image into a 5 second clip with Windpaint",
       "Add Windpaint image generation to this app"
-    ]
+    ],
+    "websiteURL": "https://windpaint.ai"
   }
 }
