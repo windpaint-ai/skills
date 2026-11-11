@@ -17,5 +17,7 @@
     "image-to-video",
     "media-generation",
     "mcp"
-  ]
+  ],
+  "icon": ".claude-plugin/icon.png",
+  "privacyPolicyUrl": "https://windpaint.ai/privacy"
 }

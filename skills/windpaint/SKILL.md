@@ -15,7 +15,14 @@ Windpaint runs generation **capabilities** (typed primitives such as `image.gene
    `generate`, `get_job`, `wait_for_job`, `download_asset`, `cancel_job`, `list_recent_jobs`,
    `list_assets`, `list_projects`, `create_project`, `get_balance`, `list_workflows`, `get_workflow`,
    `estimate_workflow`, `run_workflow`, `get_run`, `list_runs`, `cancel_run`.
-2. **REST** with `curl` otherwise. Base URL `${WINDPAINT_API_URL:-https://api.windpaint.ai}/v1`,
+2. **CLI** (`windpaint`) when it is installed (`command -v windpaint`) and the MCP tools are not.
+   Install: `curl -fsSL https://get.windpaint.ai | sh` or `brew install windpaint-ai/tap/windpaint`.
+   Main commands: `windpaint capabilities`, `estimate <capability> [prompt]`,
+   `run <capability> [prompt] -i slot=file -o ./out/`, `status <request-id> --wait`,
+   `workflows run <slug> -i field=value`, `balance`. Pass `--json` and read stdout; errors are JSON on
+   stderr with stable exit codes (3 auth, 5 not enough credits, 9 job failed). Local files given to `-i`
+   are uploaded automatically.
+3. **REST** with `curl` otherwise. Base URL `${WINDPAINT_API_URL:-https://api.windpaint.ai}/v1`,
    header `Authorization: Bearer $WINDPAINT_API_KEY`. Endpoints are listed in the `windpaint-api` skill.
 
 Auth: an API key starting `aak_`, created in the Windpaint dashboard. Check it exists without
