@@ -18,9 +18,9 @@ hand when one fits the request.
    - `available` and `unavailable_reasons`: a workflow whose steps have no served model cannot run.
      Tell the user which step blocks it; do not rebuild it by hand from unavailable capabilities.
    - `credits_estimate` at default settings.
-2. Pick an available workflow that matches the outcome. At the time of writing `text-to-clip` is the
-   only runnable one; others may be listed with `available: false`. Presets are workflows too: they
-   pre-fill part of a base workflow's form.
+2. Pick an available workflow that matches the outcome. Only workflows with `available: true` can run.
+   Workflow presets are workflows too: they pre-fill part of a base workflow's form (they are not the
+   `preset` field on `generate`).
 3. Fill the form. Text and choice values are strings; a `choice` must be one of its `options`. Media
    inputs take one asset id, public https URL or `data:` URI (up to 5 MB) each; `upload_asset` first
    for a local file.

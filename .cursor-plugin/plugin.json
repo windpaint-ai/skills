@@ -19,5 +19,6 @@
     "mcp"
   ],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.mcp.json",
+  "logo": "./.claude-plugin/icon.png"
 }

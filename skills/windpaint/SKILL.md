@@ -27,7 +27,9 @@ Windpaint runs generation **capabilities** (typed primitives such as `image.gene
 
 Auth: an API key starting `aak_`, created in the Windpaint dashboard. Check it exists without
 printing it: `[ -n "$WINDPAINT_API_KEY" ] && echo set || echo missing`. If missing, ask the user to
-create a key and export it; never ask them to paste it into the chat.
+create a key and export it; never ask them to paste it into the chat. With the CLI, a key saved by
+`windpaint auth login` also counts: `windpaint auth whoami` succeeds. The hosted MCP server takes an
+API key, not OAuth.
 
 ## 2. Discover, never assume
 
@@ -85,12 +87,14 @@ The catalog changes. Do not rely on model names or prices from memory or from th
 - The hosted MCP server cannot read your disk: `upload_asset` takes `url` or `data_base64` (base64 of
   a local file).
 - `download_asset` returns a signed URL valid about 15 minutes. To save the file, fetch it with
-  `curl -fsSL -o <path> "<url>"` (no auth header needed on the signed URL). Assets persist in their
-  project; there is no need to copy them elsewhere to keep them.
+  `curl -fsSL -o <path> "<url>"` (no auth header needed on the signed URL).
+- Outputs expire. Files are kept for the organization's retention period (7 days by default; each
+  output has `expires_at`), then deleted, and fetching them answers 410 `generation.asset_gone`.
+  Save anything the user wants to keep.
 
 ## 6. Projects
 
-Every asset, job and run belongs to a project. Omitting `project` uses the API key's default project,
+Every asset, job and run belongs to a project. Omitting `project` (MCP; REST `project_id`) uses the API key's default project,
 else the organization's default. `project` accepts an id or slug (REST: `project_id` in the body or the
 `X-Windpaint-Project` header). For a distinct piece of work, `create_project` keeps its assets together.
 Asset ids from one project cannot be used in another.
@@ -99,17 +103,6 @@ Asset ids from one project cannot be used in another.
 
 Tell the user what ran (capability, model, resolution/duration), the credits charged (`credits.actual`,
 else the estimate), and where the output is (saved path or URL). Do not dump raw JSON.
-
-## Live today
-
-At the time of writing, only `image.generate` and `video.generate` (image to video, start frame
-required) have available models, and `text-to-clip` is the only runnable workflow. Other capabilities
-and workflows may be listed with `available: false`. Trust `list_capabilities` / `list_workflows` over
-this note.
-
-## Not available today
-
-The hosted MCP takes an API key, not OAuth.
 
 ## Related skills
 

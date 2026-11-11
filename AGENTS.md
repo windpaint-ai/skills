@@ -36,7 +36,5 @@ media with Windpaint or build it into an app:
 
 ## Mirroring
 
-This repository is a read-only mirror, published from Windpaint's internal source tree, where these
-files are maintained. Changes made directly here are overwritten on the next sync. Maintainers edit
-the source copy, validate it, and run `just publish-skills` there, which replaces this repository's
-contents with the source copy as a single new commit on `main`.
+This repository is a read-only mirror; changes made here are overwritten. Open an issue instead of a
+pull request.

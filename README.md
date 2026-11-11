@@ -33,7 +33,9 @@ Website: https://windpaint.ai · Docs: https://docs.windpaint.ai/agents/overview
 ```
 
 Skills are then available as `/windpaint:windpaint`, `/windpaint:windpaint-image` and so on, and the
-`windpaint` MCP server starts with the plugin. Run `/mcp` to check it connected. More:
+`windpaint` MCP server starts with the plugin. Run `/mcp` to check it connected; if it shows
+`windpaint` as failed, export `WINDPAINT_API_KEY` in the shell you start Claude Code from and restart.
+More:
 https://docs.windpaint.ai/agents/claude-code
 
 ## Codex
@@ -50,9 +52,9 @@ https://docs.windpaint.ai/agents/codex
 
 ## Cursor
 
-Install the plugin from the Cursor marketplace once it is listed, or clone this repository and load it
-as a local plugin. Set `WINDPAINT_API_KEY` in the plugin's configuration so the bundled MCP server can
-authenticate. More: https://docs.windpaint.ai/agents/cursor
+Install the plugin from the Cursor marketplace once it is listed. Until then, follow
+https://docs.windpaint.ai/agents/cursor to add the MCP server and skills by hand. Export
+`WINDPAINT_API_KEY` before starting Cursor so the MCP server can authenticate.
 
 ## Any agent (skills only)
 

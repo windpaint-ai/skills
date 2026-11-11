@@ -42,9 +42,3 @@ Video jobs take minutes and cost far more than images. Estimate first, submit on
 - 422 on submit: usually a missing required `start_frame`, an asset of the wrong kind in the slot, an
   asset from another project, or a duration/resolution the model does not list.
 - To stop a job the user no longer wants: `cancel_job`.
-
-## Not available today
-
-Check `list_capabilities` rather than trusting this list, but at the time of writing: one image-to-video
-model with a required start frame, a single 480p resolution and a single 5 s duration; no text-only
-video model, no end-frame interpolation and no audio track on generated video.

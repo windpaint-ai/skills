@@ -8,9 +8,8 @@ description: "Generate images from a text prompt with Windpaint (capability imag
 ## Steps
 
 1. `list_capabilities` and find `image.generate`. Note its `aspect_ratios` and each available model's
-   `resolutions`, `default_resolution` and price per resolution (at the time of writing, `1k` and
-   `2k`). If the user wants to change an existing image, look at `image.edit` instead; it is only
-   usable when one of its models has `available: true` (none does at the time of writing).
+   `resolutions`, `default_resolution` and price per resolution. If the user wants to change an existing
+   image, look at `image.edit` instead; it is only usable when one of its models has `available: true`.
 2. Pick settings from what is listed, not from memory:
    - `aspect_ratio`: from the capability's list (e.g. `16:9` for a video start frame, `9:16` for a
      vertical post).
@@ -51,4 +50,6 @@ Estimate the batch first. Do not submit more than the user asked for.
   ratio). Re-read `list_capabilities` and fix the argument.
 - 503 `request.service_unavailable`: no model or price for that request here. Try the capability's
   other listed models or report it.
+- 422 `moderation.input_blocked`: the prompt or an input broke the content policy. Nothing was charged.
+  Tell the user; do not retry with the same prompt.
 - 402: see the windpaint skill, section 3.

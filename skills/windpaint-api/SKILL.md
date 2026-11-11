@@ -11,17 +11,17 @@ does not cover, and do not invent endpoints.
 
 ## Basics
 
-- Base URL: `https://api.windpaint.ai/v1`. Read the host from config (e.g. `WINDPAINT_API_URL`,
-  default `https://api.windpaint.ai`), never hard-code it in several places.
+- Base URL: `https://api.windpaint.ai/v1`. Read the origin from config (e.g. `WINDPAINT_API_URL`,
+  default `https://api.windpaint.ai`, then append `/v1`), never hard-code it in several places.
 - Auth: `Authorization: Bearer <key>`, where the key starts `aak_`. Keep the key server-side. Never
   ship it to a browser or mobile client; proxy through the app's backend.
 - The version is the `/v1` path. There is no version header.
 - Envelopes: submit, status and cancel of generation jobs return a bare JSON object. Every other
   endpoint wraps its payload as `{"data": ...}`.
 - Errors: `{"error": {"code", "message", "details", "request_id"}}`. Branch on `code`, never on
-  `message`. Log `request_id`; it maps to the server log line. Exception: 401/403 from the auth guard
-  currently come back as `{"status": false, "error": "Unauthorized" | "Forbidden"}`, so branch on the
-  HTTP status for those.
+  `message`. Log `request_id`; it maps to the server log line. Exception: 401/403 from the auth guard use
+  `{"status": false, "error", "code", "message", "request_id"}` with `code` at the top level (e.g.
+  `auth.invalid_token`, `auth.missing_scope`).
 
 ## Endpoints
 
@@ -89,7 +89,7 @@ Pass `webhook_url` (absolute `https://`) on a job submit or a workflow run, and 
   `webhook-id`, `webhook-timestamp`, `webhook-signature`. Verify on the raw body with the
   organization's `whsec_` secret (`GET /webhooks/jobs/secret`); the `standardwebhooks` libraries do it.
   Reject timestamps more than 5 minutes off.
-- Non-2xx answers (408, 429, 5xx, timeouts over 10 s) are retried up to 10 times over about 6 hours with
+- Non-2xx answers (408, 429, 5xx, timeouts over 10 s) are attempted up to 10 times over about 6 hours with
   the same `webhook-id`. De-duplicate on it. Other 4xx are not retried.
 - Deliveries can arrive out of order; act on `data.status`. Answer 2xx fast and do slow work later.
 - `GET /webhooks/jobs/deliveries[?request_id|run_id]` shows every attempt.
@@ -108,7 +108,10 @@ Keep a slow fallback poll for jobs still open long after they should have finish
 - Output `url`s point at `/v1/generation/assets/{id}/content`, which needs your key and redirects to a
   short-lived signed URL. Server-side, request it with the key, then follow the redirect **without**
   the `Authorization` header (or read `Location` with redirects disabled). Store the asset id, not the
-  signed URL; mint a fresh one when you need it. Assets persist, so you do not have to copy them out.
+  signed URL; mint a fresh one when you need it.
+- Assets expire after the organization's retention period (7 days by default, 1-365 days or forever;
+  each output has `expires_at`). After that `/content` answers 410 `generation.asset_gone`. If your app
+  needs the file longer, copy the bytes into your own storage.
 
 ## Projects
 
@@ -134,6 +137,11 @@ its own workspaces to a project and send the header per request.
 | 403 | key lacks the scope (generation read/write, billing read) | no |
 | 404 `request.not_found` | wrong id, or another organization's | no |
 | 409 `request.conflict` | e.g. writing to an archived project | no |
+| 409 `generation.asset_in_use` | the asset is an input of a running job | no, wait for the job |
+| 410 `generation.asset_gone` | input asset expired or was deleted | no, upload it again |
+| 422 `moderation.input_blocked` | prompt or input blocked by the content policy; nothing created or charged | no, tell the user |
+| 422 `input.*` | an input could not be fetched or is the wrong kind/size | no, fix the input |
+| 429 `request.rate_limited` | too many submits; honor `Retry-After` | yes, after `Retry-After` |
 | 422 `request.validation_failed` | bad argument; `details` names it | no, fix the request |
 | 402 `billing.insufficient_credits` | balance too low | no |
 | 503 `request.service_unavailable` | model not available or tier unpriced here | no, pick another model/tier |

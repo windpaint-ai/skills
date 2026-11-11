@@ -27,6 +27,9 @@
       "Turn this image into a 5 second clip with Windpaint",
       "Add Windpaint image generation to this app"
     ],
-    "websiteURL": "https://windpaint.ai"
-  }
+    "websiteURL": "https://windpaint.ai",
+    "privacyPolicyURL": "https://windpaint.ai/privacy",
+    "logo": "./.claude-plugin/icon.png"
+  },
+  "mcpServers": "./.mcp.json"
 }
