@@ -22,8 +22,8 @@ hand when one fits the request.
    Workflow presets are workflows too: they pre-fill part of a base workflow's form (they are not the
    `preset` field on `generate`).
 3. Fill the form. Text and choice values are strings; a `choice` must be one of its `options`. Media
-   inputs take one asset id, public https URL or `data:` URI (up to 5 MB) each; `upload_asset` first
-   for a local file.
+   inputs take one asset id, public https URL or `data:` URI (up to 5 MB) each. Upload a local file
+   first, from the shell (see "Assets and slots" in the `windpaint` skill).
 4. `estimate_workflow(slug, inputs)` and tell the user the credits and `available_credits` before
    running. Runs are refused with 402 if available credits are below the estimate.
 5. `run_workflow(slug, inputs, wait=false)`, keep the run `id`, then `get_run(run_id, wait=true,

@@ -13,7 +13,9 @@ Video jobs take minutes and cost far more than images. Estimate first, submit on
    `durations`, the price per tier, and the model's own `inputs`: a `start_frame` with `min: 1` means
    the model needs a start image, and `end_frame` with `max: 0` means it takes no end frame.
 2. Get the start frame:
-   - The user gave a file or URL: `upload_asset` with `url`, or `data_base64` for a local file.
+   - The user gave a URL: `upload_asset` with `url`.
+   - The user gave a local file: upload it from the shell and use the returned id (see "Assets and
+     slots" in the `windpaint` skill). `data_base64` only works for small files.
    - They gave an asset id or an earlier job's output: use that id.
    - They only gave a prompt: first check `list_workflows` for `text-to-clip` (see
      `windpaint-workflows`); it does still + clip in one run. Otherwise make a still with

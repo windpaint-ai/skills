@@ -84,8 +84,15 @@ The catalog changes. Do not rely on model names or prices from memory or from th
 - Public https URLs and `data:` URIs (up to 5 MB) also work as inputs; the API stores them as assets.
 - Formats: PNG, JPEG, WebP images (20 MB); MP4, MOV, WebM video (200 MB, 60 s); MP3, WAV, M4A, OGG
   audio (25 MB, 5 min). Uploads are free.
-- The hosted MCP server cannot read your disk: `upload_asset` takes `url` or `data_base64` (base64 of
-  a local file).
+- The hosted MCP server cannot read your disk, and `data_base64` has to travel inside the tool call, so
+  it only suits small files (a few tens of KB). For a local file, upload it from the shell and pass the
+  returned `id` to the MCP tools:
+  ```bash
+  curl -fsS -H "Authorization: Bearer $WINDPAINT_API_KEY" -H "X-Windpaint-Project: <project>" \
+    -F data=@./photo.png https://api.windpaint.ai/v1/generation/uploads    # {"data": {"id": "...", ...}}
+  ```
+  With the CLI installed and logged in, `windpaint upload ./photo.png --project <project> --json` does the
+  same. Upload into the project the job will run in: an asset from another project is refused.
 - `download_asset` returns a signed URL valid about 15 minutes. To save the file, fetch it with
   `curl -fsSL -o <path> "<url>"` (no auth header needed on the signed URL).
 - Outputs expire. Files are kept for the organization's retention period (7 days by default; each

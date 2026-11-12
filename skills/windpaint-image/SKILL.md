@@ -26,7 +26,8 @@ description: "Generate images from a text prompt with Windpaint (capability imag
    project's working directory.
 6. Report the saved path, model, resolution and credits.
 
-For `image.edit`: upload the source (and any references) with `upload_asset`, then
+For `image.edit`: upload the source (and any references), with `upload_asset` for a URL or from the
+shell for a local file (see "Assets and slots" in the `windpaint` skill), then
 `generate(capability="image.edit", prompt="<instruction>", inputs={"images": [source_id, ...]})`.
 Order in `images` matters: refer to them in the prompt in the same order. A `mask` slot (one mask
 asset) limits the change to a region.

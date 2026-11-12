@@ -2,7 +2,7 @@
   "$schema": "https://cursor.com/schemas/cursor-plugin/plugin.json",
   "name": "windpaint",
   "displayName": "Windpaint",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "description": "Generate images and video with the Windpaint API, run its multi-step workflows, and build Windpaint into your app.",
   "author": {
